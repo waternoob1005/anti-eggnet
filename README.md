@@ -1,7 +1,7 @@
 <img src="https://github.com/waternoob1005/anti-eggnet/blob/main/img/anti-eggnet.webp?raw=true" width="200" height="200">
 
 # anti-eggnet
-Eggnet의 실체를 알리는 공간입니다.
+Eggnet Arcade 멀티플레이어에 대한 거의 모든 것을 담고 있는 공간입니다!
 
 ## 1. 홍보팀이 핵쟁이입니다.
 
@@ -43,4 +43,4 @@ Eggnet의 실체를 알리는 공간입니다.
 
 ## 기여자
 
-이 프로젝트에는 보드(boredapvp)가 기여했습니다.
+워터눕, 보드, 윤사팬 기여함
