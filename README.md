@@ -5,6 +5,8 @@ Eggnet Arcade 멀티플레이어에 대한 거의 모든 것을 담고 있는 �
 
 ## 1. 홍보팀이 핵쟁이입니다.
 
+<img src="https://github.com/waternoob1005/anti-eggnet/blob/main/img/eggnet_have_hacker.webp?raw=true">
+
 위 사진을 보시면 Testoc2가 있습니다.
 
 놀라운 사실은, 저 사람은 Lumine proxy로 엑스박스 서버들을 테러한 악질입니다.
@@ -29,9 +31,11 @@ Eggnet Arcade 멀티플레이어에 대한 거의 모든 것을 담고 있는 �
 
 <img src="https://github.com/waternoob1005/anti-eggnet/blob/main/img/eggnet_steal_kastle_sourcecode.webp?raw=true">
 
-에그넷에서 배포한 EggnetLan.exe에서 kastle의 proxypass가 발견되었습니다.
+Eggnet에서 배포한 EggnetLan.exe에서 kastle의 proxypass가 발견되었습니다.
 
 참고로 kastle의 proxypass에는 AGPL 3.0 라이선스가 적용되어있으며, 이에 따라 Eggnet에서는 소스코드를 무조건 공개해야만 했습니다.
+
+이건 Eggnet이 대한민국 저작권법을 어긴 것이며, 바로 형사 소송도 가능한 수준이였죠.
 
 이를 바로 kastle에게 신고하였고, 저는 형사처벌을 위해 고발인 + 대타를 서줄 수 있다고 했습니다.
 
