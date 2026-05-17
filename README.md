@@ -49,6 +49,18 @@ https://github.com/kimaaaa1/eggnet-proxypass-lan-source
 
 그뿐만 아니라, 관리자로서 당연히 유저들이 규칙 지키는지 관찰해야 합니다. 그게 의무입니다.
 
+## 4. 에그넷 창립자의 혐한 발언 논란
+
+에그넷 창립자 이슈(대진)의 혐한 발언에 대해 한국인들은 매우 잠잠합니다.
+
+심지어 에그넷을 한국인이 써주기까지 하고 있습니다.
+
+<img src="https://github.com/waternoob1005/anti-eggnet/blob/main/img/i-hate-korean.webp?raw=true" width="200" height="200">
+
+한국인들의 은혜를 기꺼이 받은 에그넷이, 한국인들을 욕하고, 한국 채팅 채널을 삭제하기까지 했습니다.
+
+이러한 에그넷 창립자의 태도에는 매우 큰 문제가 있다고 확신하며, 이 일이 꼭 알려져야 합니다.
+
 ## 기여자
 
 워터눕, 보드, 윤사팬 기여함
