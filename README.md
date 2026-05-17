@@ -17,6 +17,14 @@ Eggnet에서 배포한 EggnetLan.exe에서 kastle의 proxypass가 발견되었�
 
 kastle은 Eggnet과 "라이선스 일주일 안에 지키기"를 합의하였지만, 이는 지켜지지 않았습니다.
 
+깃허브로 라이선스 약속을 지키기 위해 repo를 올렸지만, 이가 전파되지 않기 위한 수작을 쓰고 있습니다.
+
+깃허브 링크를 물어보면 벤을 때리고 있습니다.
+
+https://github.com/kimaaaa1/eggnet-proxypass-lan-source
+
+깃허브 링크를 절대 에그넷에 물어보지 마시고, 위 링크로 들어가서 이용해주시기 바랍니다.
+
 ## 2. Eggnet 홍보팀 게임 핵 사용 논란
 
 <img src="https://github.com/waternoob1005/anti-eggnet/blob/main/img/eggnet_have_hacker.webp?raw=true">
