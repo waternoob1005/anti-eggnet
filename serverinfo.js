@@ -36,7 +36,6 @@ async function getAllPeople(auth) {
             signal: AbortSignal.timeout(60000),
         }),
     ])
-
     const socialPeople = socialRes.ok ? (await socialRes.json()).people || [] : []
     const followingPeople = followingRes.ok ? (await followingRes.json()).people || [] : []
 
@@ -48,7 +47,7 @@ async function getAllPeople(auth) {
     return [...map.values()]
 }
 
-// ── MCBE 접속 중인 사람 필터링 (presence 배치 조회) ──
+// ── MCBE 접속 중인 사람 필터링 ──
 async function getMcbeOnlineFriends(auth, xuids) {
     const MCBE_TITLE_IDS = new Set(['1739947436', '896928775', '1810924247', '2044456598', '1828326430'])
     const res = await fetch('https://userpresence.xboxlive.com/users/batch', {
@@ -69,7 +68,6 @@ async function getMcbeOnlineFriends(auth, xuids) {
 }
 
 // ── 특정 xuid의 activity handle 목록 조회 ──
-// customProperties가 포함된 핸들을 반환함
 async function getActivityHandles(auth, xuid) {
     try {
         const res = await fetch(
@@ -105,7 +103,6 @@ async function getSessionDetail(auth, scid, templateName, sessionName) {
             if (!text?.trim()) return null
             return JSON.parse(text)
         }
-        // 403이면 mcbe 토큰으로 재시도
         if (res.status === 403) {
             const res2 = await fetch(url, {
                 headers: xblHeader(auth.mcbeUserHash, auth.mcbeXstsToken, '107'),
@@ -182,20 +179,41 @@ function classifyServer(custom) {
     return 'local'
 }
 
+// ── SupportedConnections에서 연결 정보 파싱 ──
+// NetherNetId, PmsgId, WebRTCNetworkId 등 포함
+function parseConnections(custom) {
+    const connections = (custom.SupportedConnections || []).map(conn => ({
+        connectionType: conn.ConnectionType,
+        host: conn.HostIpAddress || null,
+        port: conn.HostPort || null,
+        netherNetId: conn.NetherNetId ?? conn.WebRTCNetworkId ?? null,
+        webRTCNetworkId: conn.WebRTCNetworkId ?? null,
+        pmsgId: conn.PmsgId || null,
+    }))
+    return {
+        ipConn:    connections.find(c => c.connectionType === 1 || c.connectionType === 2) || null,
+        nnConn:    connections.find(c => c.connectionType === 6 || c.connectionType === 7) || null,
+        realmConn: connections.find(c => c.connectionType === 3) || null,
+        allConns:  connections,
+    }
+}
+
 // ── 핸들의 customProperties에서 서버 정보 파싱 ──
-// 세션 직접 조회 없이 핸들만으로 서버 정보 추출
+// nonces 필드 포함 (eggnet 중계 서버용)
 function parseHandle(handle) {
     const custom = handle?.customProperties || {}
     if (!custom || Object.keys(custom).length === 0) return null
     if (!custom.worldName) return null
 
-    const connections = (custom.SupportedConnections || []).map(conn => ({
-        connectionType: conn.ConnectionType,
-        host: conn.HostIpAddress || null,
-        port: conn.HostPort || null,
-        netherNetId: conn.NetherNetId || null,
-        pmsgId: conn.PmsgId || null,
-    }))
+    const { ipConn, nnConn, realmConn, allConns } = parseConnections(custom)
+
+    // NetherNetId: SupportedConnections에서 추출
+    const netherNetId = nnConn?.netherNetId ?? null
+    const webRTCNetworkId = nnConn?.webRTCNetworkId ?? custom.WebRTCNetworkId ?? null
+    const pmsgId = nnConn?.pmsgId ?? null
+
+    // nonces: eggnet 중계 서버에서 각 멤버별 연결 토큰
+    const nonces = custom.nonces || null
 
     return {
         handleId: handle.id || null,
@@ -211,9 +229,15 @@ function parseHandle(handle) {
         serverType: classifyServer(custom),
         realmId: custom.RealmId || null,
         levelId: custom.levelId || null,
-        ipConn:    connections.find(c => c.connectionType === 1 || c.connectionType === 2) || null,
-        nnConn:    connections.find(c => c.connectionType === 6 || c.connectionType === 7) || null,
-        realmConn: connections.find(c => c.connectionType === 3) || null,
+        // 연결 정보
+        netherNetId,
+        webRTCNetworkId,
+        pmsgId,
+        ipConn,
+        nnConn,
+        realmConn,
+        // eggnet nonces (멤버 xuid → 연결 토큰)
+        nonces,
         members: [],
     }
 }
@@ -226,13 +250,13 @@ function parseSession(session, handle) {
         xuid: m.constants?.system?.xuid || null,
         gamertag: m.constants?.system?.gamertag || null,
     }))
-    const connections = (custom.SupportedConnections || []).map(conn => ({
-        connectionType: conn.ConnectionType,
-        host: conn.HostIpAddress || null,
-        port: conn.HostPort || null,
-        netherNetId: conn.NetherNetId || null,
-        pmsgId: conn.PmsgId || null,
-    }))
+
+    const { ipConn, nnConn, realmConn } = parseConnections(custom)
+    const netherNetId = nnConn?.netherNetId ?? null
+    const webRTCNetworkId = nnConn?.webRTCNetworkId ?? custom.WebRTCNetworkId ?? null
+    const pmsgId = nnConn?.pmsgId ?? null
+    const nonces = custom.nonces || null
+
     return {
         handleId: handle?.id || null,
         ownerXuid: handle?.ownerXuid || null,
@@ -247,15 +271,18 @@ function parseSession(session, handle) {
         serverType: classifyServer(custom),
         realmId: custom.RealmId || null,
         levelId: custom.levelId || null,
-        ipConn:    connections.find(c => c.connectionType === 1 || c.connectionType === 2) || null,
-        nnConn:    connections.find(c => c.connectionType === 6 || c.connectionType === 7) || null,
-        realmConn: connections.find(c => c.connectionType === 3) || null,
+        netherNetId,
+        webRTCNetworkId,
+        pmsgId,
+        ipConn,
+        nnConn,
+        realmConn,
+        nonces,
         members: memberList,
     }
 }
 
 // ── 서버 중복 제거용 키 생성 ──
-// levelId > hostXuid+worldName > handleId 순으로 사용
 function getServerKey(parsed) {
     if (parsed.levelId) return parsed.levelId
     if (parsed.hostXuid && parsed.worldName) return `${parsed.hostXuid}:${parsed.worldName}`
@@ -263,7 +290,6 @@ function getServerKey(parsed) {
 }
 
 // ── 핸들 목록을 serverMap에 추가 ──
-// 핸들에서 바로 파싱하고, 정보 없으면 세션 직접 조회
 async function processHandles(auth, handles, serverMap, allXuids) {
     for (const handle of handles) {
         // 1차: customProperties에서 바로 파싱
@@ -300,54 +326,40 @@ async function main() {
     console.log('Verification success')
 
     console.log('Getting server info')
-
-    // social + following 전체 목록
     const friends = await getAllPeople(auth)
     const friendMap = {}
     for (const f of friends) { if (f.xuid) friendMap[f.xuid] = f.gamertag }
 
     const xuids = friends.map(f => f.xuid).filter(Boolean)
-
-    // MCBE 접속 중인 사람 필터
     const mcbePresence = await getMcbeOnlineFriends(auth, xuids)
 
     const serverMap = new Map()
     const allXuids = new Set([auth.xuid])
 
-    // ── 1단계: MCBE 접속 중인 사람의 handles 조회 ──
+    // 1단계: MCBE 접속 중인 사람의 handles 조회
     for (const presence of mcbePresence) {
         const handles = await getActivityHandles(auth, presence.xuid)
         await processHandles(auth, handles, serverMap, allXuids)
     }
 
-    // ── 2단계: handles의 customProperties.ownerId에서 호스트 XUID 수집 ──
-    // 호스트가 오프라인이어도 참가자를 통해 서버를 발견할 수 있음
-    // 이미 찾은 서버들의 hostXuid로 추가 handles 조회
-    const discoveredHostXuids = new Set(
-        [...serverMap.values()]
-            .map(s => s.hostXuid)
-            .filter(Boolean)
-    )
-
-    // 핸들에서 발견한 ownerXuid도 수집 (호스트가 오프라인인 경우 대비)
+    // 2단계: 핸들에서 발견한 hostXuid로 추가 handles 조회
+    // 호스트가 오프라인이어도 참가자를 통해 서버를 발견하는 경우 대비
+    const discoveredHostXuids = new Set()
     for (const presence of mcbePresence) {
         const handles = await getActivityHandles(auth, presence.xuid)
         for (const handle of handles) {
             const ownerId = handle.customProperties?.ownerId
             if (ownerId && !discoveredHostXuids.has(ownerId)) {
                 discoveredHostXuids.add(ownerId)
-                // 이 호스트의 handles도 추가로 조회
                 const hostHandles = await getActivityHandles(auth, ownerId)
                 await processHandles(auth, hostHandles, serverMap, allXuids)
             }
         }
     }
 
-    // 프로필 조회
     const profiles = await getProfiles(auth, [...allXuids])
     const profileMap = buildProfileMap(profiles)
 
-    // public 서버만 출력
     const publicServers = [...serverMap.values()].filter(s => s.serverType === 'public')
 
     console.log(`Now server count is ${publicServers.length}`)
@@ -356,15 +368,21 @@ async function main() {
     for (const server of publicServers) {
         const hostProfile = profileMap[server.hostXuid]
         console.log({
-            worldName:     server.worldName,
-            hostName:      hostProfile?.gamertag ?? server.hostName,
-            gameMode:      server.worldType,
-            handleId:      server.handleId,
-            version:       server.version,
-            currentPlayer: server.currentPlayers,
-            maxPlayers:    server.maxPlayers,
-            xuid:          server.hostXuid,
-            image:         hostProfile?.profilePicUrl ?? null,
+            worldName:      server.worldName,
+            hostName:       hostProfile?.gamertag ?? server.hostName,
+            gameMode:       server.worldType,
+            handleId:       server.handleId,
+            version:        server.version,
+            currentPlayer:  server.currentPlayers,
+            maxPlayers:     server.maxPlayers,
+            xuid:           server.hostXuid,
+            image:          hostProfile?.profilePicUrl ?? null,
+            // 연결 정보
+            netherNetId:    server.netherNetId,
+            webRTCNetworkId: server.webRTCNetworkId,
+            pmsgId:         server.pmsgId,
+            // eggnet nonces (있는 경우만)
+            nonces:         server.nonces ?? undefined,
         })
         console.log('━'.repeat(60))
     }
